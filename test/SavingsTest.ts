@@ -72,5 +72,11 @@ describe("Testing the Savings Contract", function () {
 
       expect(withdrawer).is.not.equal(nullAddress);
     });
+
+    it("Should revert if the user's savings is 0", async function () {
+      const { savings, owner } = await loadFixture(deploySavingsContract);
+
+      await expect(savings.withdraw()).to.be.revertedWith("No savings stored");
+    });
   });
 });
