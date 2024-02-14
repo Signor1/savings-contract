@@ -150,8 +150,8 @@ describe("Testing the Savings Contract", function () {
     });
   });
 
-  describe("User Savings Check", function () {
-    it("Should return user's balance if user has savings", async function () {
+  describe("Users Savings Check", function () {
+    it("Should return any user's balance if that user has savings", async function () {
       const { savings, owner } = await loadFixture(deploySavingsContract);
 
       const depositAmount = ethers.parseEther("2.0");
@@ -241,6 +241,19 @@ describe("Testing the Savings Contract", function () {
       const expectedSenderBal = depositAmount - sendAmount;
 
       expect(senderBal).to.be.equal(expectedSenderBal);
+    });
+  });
+  describe("User savings check", function () {
+    it("Should return user's balance if user has savings", async function () {
+      const { savings } = await loadFixture(deploySavingsContract);
+
+      const depositAmount = ethers.parseEther("4.0");
+
+      await savings.deposit({ value: depositAmount });
+
+      const userBal = await savings.checkContractBal();
+
+      expect(userBal).to.be.equal(depositAmount);
     });
   });
 });
