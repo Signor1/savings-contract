@@ -23,8 +23,32 @@ describe("Testing the Savings Contract", function () {
   });
 
   describe("Deposit Check", function () {
-    it("should check if the deposit was successful", async function () {
+    it("Should deposit ETH correctly", async function () {
+      const { savings, owner } = await loadFixture(deploySavingsContract);
+
+      await savings.deposit({ value: ethers.parseEther("1.0") });
+    });
+
+    it("Should revert if the sender address is 0", async function () {
+      const { savings, owner } = await loadFixture(deploySavingsContract);
+
+      await savings.deposit({ value: ethers.parseEther("1.0") });
+
+      const sender = owner.address;
+
+      const nullAddress = "0x0000000000000000000000000000000000000000";
+
+      expect(sender).is.not.equal(nullAddress);
+    });
+
+    it("Should revert if the deposit amount is 0", async function () {
+      // Deploy the contract
       const { savings } = await loadFixture(deploySavingsContract);
+
+      // Attempt deposit with 0 ETH
+      await expect(savings.deposit({ value: 0 })).to.be.revertedWith(
+        "insufficient amount"
+      );
     });
   });
 });
