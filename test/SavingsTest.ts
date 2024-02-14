@@ -24,7 +24,7 @@ describe("Testing the Savings Contract", function () {
 
   describe("Deposit Check", function () {
     it("Should deposit ETH correctly", async function () {
-      const { savings, owner } = await loadFixture(deploySavingsContract);
+      const { savings } = await loadFixture(deploySavingsContract);
 
       const depositAmount = ethers.parseEther("1.0");
 
@@ -72,7 +72,7 @@ describe("Testing the Savings Contract", function () {
     });
 
     it("Should revert if the user's savings is 0", async function () {
-      const { savings, owner } = await loadFixture(deploySavingsContract);
+      const { savings } = await loadFixture(deploySavingsContract);
 
       await expect(savings.withdraw()).to.be.revertedWith("No savings stored");
     });
@@ -114,7 +114,7 @@ describe("Testing the Savings Contract", function () {
 
   describe("Contract Balance", function () {
     it("Should check if the deposit event is working", async function () {
-      const { savings, owner } = await loadFixture(deploySavingsContract);
+      const { savings } = await loadFixture(deploySavingsContract);
 
       const depositAmount = ethers.parseEther("2.0");
 
@@ -153,6 +153,33 @@ describe("Testing the Savings Contract", function () {
       );
 
       expect(anotherUserAddress).to.be.equal("0");
+    });
+  });
+
+  describe("User-to-User transfers", function () {
+    it("Should revert if the sender's address is 0", async function () {
+      const { savings, owner } = await loadFixture(deploySavingsContract);
+
+      await savings.deposit({ value: ethers.parseEther("1.0") });
+
+      const sender = owner.address;
+
+      const nullAddress = "0x0000000000000000000000000000000000000000";
+
+      expect(sender).is.not.equal(nullAddress);
+    });
+
+    it("Should revert if the sender's savings is 0", async function () {
+      const { savings, otherAccount } = await loadFixture(
+        deploySavingsContract
+      );
+      const depositAmount = ethers.parseEther("2.0");
+
+      await savings.deposit({ value: depositAmount });
+
+      await expect(savings.sendoutSaving(otherAccount, 0)).to.be.revertedWith(
+        "Can't send zero value"
+      );
     });
   });
 });
