@@ -35,6 +35,24 @@ describe("Testing the Savings Contract", function () {
       expect(userBal).to.be.equal(depositAmount);
     });
 
+    it("Should check if the user's deposits increment", async function () {
+      const { savings } = await loadFixture(deploySavingsContract);
+
+      const depositAmount1 = ethers.parseEther("1.0");
+
+      const depositAmount2 = ethers.parseEther("2.0");
+
+      await savings.deposit({ value: depositAmount1 });
+
+      await savings.deposit({ value: depositAmount2 });
+
+      const userBal = await savings.checkUserBal();
+
+      const result = depositAmount1 + depositAmount2;
+
+      expect(userBal).to.be.equal(result);
+    });
+
     it("Should revert if the sender address is 0", async function () {
       const { savings, owner } = await loadFixture(deploySavingsContract);
 
@@ -113,16 +131,22 @@ describe("Testing the Savings Contract", function () {
   });
 
   describe("Contract Balance", function () {
-    it("Should check if the deposit event is working", async function () {
+    it("Should check if the contract balance increments as users deposit", async function () {
       const { savings } = await loadFixture(deploySavingsContract);
 
       const depositAmount = ethers.parseEther("2.0");
+      const depositAmount1 = ethers.parseEther("2.0");
+      const depositAmount2 = ethers.parseEther("2.0");
 
       await savings.deposit({ value: depositAmount });
+      await savings.deposit({ value: depositAmount1 });
+      await savings.deposit({ value: depositAmount2 });
 
       const contractBal = await savings.checkContractBal();
 
-      expect(contractBal).to.be.equal(depositAmount);
+      const totalBal = depositAmount + depositAmount1 + depositAmount2;
+
+      expect(contractBal).to.be.equal(totalBal);
     });
   });
 
@@ -195,6 +219,28 @@ describe("Testing the Savings Contract", function () {
       await expect(
         savings.sendoutSaving(otherAccount, amountToSend)
       ).to.be.revertedWith("You don't have such amount");
+    });
+
+    it("Should check if sender really sent savings", async function () {
+      const { savings, owner, otherAccount } = await loadFixture(
+        deploySavingsContract
+      );
+      const depositAmount = ethers.parseEther("2.0");
+      await savings.deposit({ value: depositAmount });
+
+      const txSenderBal = await savings.checkSavings(owner.address);
+
+      expect(txSenderBal).to.be.equal(depositAmount);
+
+      const sendAmount = ethers.parseEther("1.0");
+
+      await savings.sendoutSaving(otherAccount, sendAmount);
+
+      const senderBal = await savings.checkSavings(owner.address);
+
+      const expectedSenderBal = depositAmount - sendAmount;
+
+      expect(senderBal).to.be.equal(expectedSenderBal);
     });
   });
 });
