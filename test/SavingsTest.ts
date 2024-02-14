@@ -26,7 +26,15 @@ describe("Testing the Savings Contract", function () {
     it("Should deposit ETH correctly", async function () {
       const { savings, owner } = await loadFixture(deploySavingsContract);
 
-      await savings.deposit({ value: ethers.parseEther("1.0") });
+      const depositAmount = "1.0";
+
+      const tx = await savings.deposit({
+        value: ethers.parseEther(depositAmount),
+      });
+
+      await expect(tx)
+        .to.emit(savings, "SavingsSuccssful")
+        .withArgs(owner, anyValue);
     });
 
     it("Should revert if the sender address is 0", async function () {
