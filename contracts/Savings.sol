@@ -38,7 +38,7 @@ contract Savings{
         //sanity check
         require(msg.sender != address(0), "Wrong EOA");
         require(_amount > 0, "Can't send zero value");
-        require(savings[msg.sender] >= _amount);
+        require(savings[msg.sender] >= _amount, "You don't have such amount");
 
         savings[msg.sender] -= _amount;
 

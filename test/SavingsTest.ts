@@ -139,7 +139,7 @@ describe("Testing the Savings Contract", function () {
       expect(userBal).to.be.equal(depositAmount);
     });
 
-    it("Should return 0 balance if user has do not have savings", async function () {
+    it("Should return 0 balance if user do not have savings", async function () {
       const { savings, otherAccount } = await loadFixture(
         deploySavingsContract
       );
@@ -180,6 +180,21 @@ describe("Testing the Savings Contract", function () {
       await expect(savings.sendoutSaving(otherAccount, 0)).to.be.revertedWith(
         "Can't send zero value"
       );
+    });
+
+    it("Should revert if the amount the sender is sending is greater than what is in the sender's savings", async function () {
+      const { savings, otherAccount } = await loadFixture(
+        deploySavingsContract
+      );
+      const depositAmount = ethers.parseEther("2.0");
+
+      await savings.deposit({ value: depositAmount });
+
+      const amountToSend = ethers.parseEther("4.0");
+
+      await expect(
+        savings.sendoutSaving(otherAccount, amountToSend)
+      ).to.be.revertedWith("You don't have such amount");
     });
   });
 });
