@@ -26,15 +26,13 @@ describe("Testing the Savings Contract", function () {
     it("Should deposit ETH correctly", async function () {
       const { savings, owner } = await loadFixture(deploySavingsContract);
 
-      const depositAmount = "1.0";
+      const depositAmount = ethers.parseEther("1.0");
 
-      const tx = await savings.deposit({
-        value: ethers.parseEther(depositAmount),
-      });
+      await savings.deposit({ value: depositAmount });
 
-      await expect(tx)
-        .to.emit(savings, "SavingsSuccssful")
-        .withArgs(owner, anyValue);
+      const userBal = await savings.checkUserBal();
+
+      expect(userBal).to.be.equal(depositAmount);
     });
 
     it("Should revert if the sender address is 0", async function () {
@@ -77,6 +75,84 @@ describe("Testing the Savings Contract", function () {
       const { savings, owner } = await loadFixture(deploySavingsContract);
 
       await expect(savings.withdraw()).to.be.revertedWith("No savings stored");
+    });
+
+    it("Should check if the withdrawal is successful", async function () {
+      const { savings } = await loadFixture(deploySavingsContract);
+
+      const depositAmount = ethers.parseEther("1.0");
+
+      await savings.deposit({ value: depositAmount });
+
+      const initialBal = await savings.checkUserBal();
+
+      expect(initialBal).to.be.equal(depositAmount);
+
+      await savings.withdraw();
+
+      const balCheck = await savings.checkUserBal();
+
+      expect(balCheck).to.be.equal("0");
+    });
+  });
+
+  describe("Events Check", function () {
+    it("Should check if the deposit event is working", async function () {
+      const { savings, owner } = await loadFixture(deploySavingsContract);
+
+      const depositAmount = "1.0";
+
+      const tx = await savings.deposit({
+        value: ethers.parseEther(depositAmount),
+      });
+
+      await expect(tx)
+        .to.emit(savings, "SavingsSuccssful")
+        .withArgs(owner, anyValue);
+    });
+  });
+
+  describe("Contract Balance", function () {
+    it("Should check if the deposit event is working", async function () {
+      const { savings, owner } = await loadFixture(deploySavingsContract);
+
+      const depositAmount = ethers.parseEther("2.0");
+
+      await savings.deposit({ value: depositAmount });
+
+      const contractBal = await savings.checkContractBal();
+
+      expect(contractBal).to.be.equal(depositAmount);
+    });
+  });
+
+  describe("User Savings Check", function () {
+    it("Should return user's balance if user has savings", async function () {
+      const { savings, owner } = await loadFixture(deploySavingsContract);
+
+      const depositAmount = ethers.parseEther("2.0");
+
+      await savings.deposit({ value: depositAmount });
+
+      const userBal = await savings.checkSavings(owner.address);
+
+      expect(userBal).to.be.equal(depositAmount);
+    });
+
+    it("Should return 0 balance if user has do not have savings", async function () {
+      const { savings, otherAccount } = await loadFixture(
+        deploySavingsContract
+      );
+
+      const depositAmount = ethers.parseEther("2.0");
+
+      await savings.deposit({ value: depositAmount });
+
+      const anotherUserAddress = await savings.checkSavings(
+        otherAccount.address
+      );
+
+      expect(anotherUserAddress).to.be.equal("0");
     });
   });
 });
