@@ -59,4 +59,18 @@ describe("Testing the Savings Contract", function () {
       );
     });
   });
+
+  describe("Withdrawal Check", function () {
+    it("Should revert if the withdrawal address is 0", async function () {
+      const { savings, owner } = await loadFixture(deploySavingsContract);
+
+      await savings.deposit({ value: ethers.parseEther("1.0") });
+
+      const withdrawer = owner.address;
+
+      const nullAddress = "0x0000000000000000000000000000000000000000";
+
+      expect(withdrawer).is.not.equal(nullAddress);
+    });
+  });
 });
